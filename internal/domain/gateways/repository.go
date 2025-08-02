@@ -7,5 +7,5 @@ import (
 )
 
 type HvacDataRepository interface {
-	InsertMany(ctx context.Context, data []entities.HvacSensorData) error
+	InsertMany(ctx context.Context, collectionName string, data []entities.HvacSensorData) error
 }

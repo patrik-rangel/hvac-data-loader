@@ -16,12 +16,11 @@ import (
 )
 
 type MongoRepository struct {
-	client         *mongo.Client
-	databaseName   string
-	collectionName string
+	client       *mongo.Client
+	databaseName string
 }
 
-func NewMongoRepository(connectionString, databaseName, collectionName string) (gateways.HvacDataRepository, error) {
+func NewMongoRepository(connectionString, databaseName string) (gateways.HvacDataRepository, error) {
 	clientOptions := options.Client().ApplyURI(connectionString)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -38,32 +37,30 @@ func NewMongoRepository(connectionString, databaseName, collectionName string) (
 
 	log.Println("Conectado com sucesso ao MongoDB!")
 	return &MongoRepository{
-		client:         client,
-		databaseName:   databaseName,
-		collectionName: collectionName,
+		client:       client,
+		databaseName: databaseName,
 	}, nil
 }
 
-func (r *MongoRepository) InsertMany(ctx context.Context, data []entities.HvacSensorData) error {
-	collection := r.client.Database(r.databaseName).Collection(r.collectionName)
+func (r *MongoRepository) InsertMany(ctx context.Context, collectionName string, data []entities.HvacSensorData) error {
+	collection := r.client.Database(r.databaseName).Collection(collectionName)
 
 	var documents []interface{}
 	for _, item := range data {
-		// TODO Criar a conversão de objeto de dominio para o que vai ser inserido
 		documents = append(documents, item)
 	}
 
-	log.Printf("Inserindo %d documentos na coleção '%s' do banco de dados '%s'...", len(documents), r.collectionName, r.databaseName)
+	log.Printf("Inserindo %d documentos na coleção '%s' do banco de dados '%s'...", len(documents), collectionName, r.databaseName)
 
 	insertCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	res, err := collection.InsertMany(insertCtx, documents)
+	_, err := collection.InsertMany(insertCtx, documents)
 	if err != nil {
-		return fmt.Errorf("falha ao inserir documentos no MongoDB: %w", err)
+		return fmt.Errorf("falha ao inserir documentos no MongoDB na coleção '%s': %w", collectionName, err)
 	}
 
-	log.Printf("Documentos inseridos com sucesso! IDs inseridos: %v", res.InsertedIDs)
+	log.Printf("Documentos inseridos com sucesso na coleção '%s'", collectionName)
 	return nil
 }
 
