@@ -20,11 +20,13 @@ func NewS3Resource(ctx context.Context) (*S3Resource, error) {
 	if err != nil {
 		return nil, fmt.Errorf("falha ao carregar a configuração AWS: %w", err)
 	}
-	return &S3Resource{client: s3.NewFromConfig(cfg)}, nil
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+	})
+
+	return &S3Resource{client: client}, nil
 }
 
-// GetObjectStream baixa um objeto do S3 e retorna seu conteúdo como um io.ReadCloser.
-// É responsabilidade do chamador fechar o io.ReadCloser.
 func (a *S3Resource) GetObjectStream(ctx context.Context, bucketName, objectKey string) (io.ReadCloser, error) {
 	log.Printf("Obtendo stream do objeto s3://%s/%s...", bucketName, objectKey)
 
