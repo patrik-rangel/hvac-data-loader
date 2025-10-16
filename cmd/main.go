@@ -34,8 +34,14 @@ func setupDependencies(ctx context.Context) (*services.DataLoaderService, error)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar adaptador S3: %w", err)
 	}
+    
+    s3Wtr, err := s3.NewS3ResourceWriter(ctx)
+    if err != nil {
+        return nil, fmt.Errorf("erro ao criar adaptador S3 Writer: %w", err)
+    }
 
-	ingestService := services.NewDataLoaderService(mongoRepo, s3Rdr, mongoDatabase)
+	ingestService := services.NewDataLoaderService(mongoRepo, s3Rdr, s3Wtr)
+	
 	return ingestService, nil
 }
 
@@ -101,7 +107,6 @@ func main() {
 		log.Println("Aviso: Não foi possível carregar o arquivo .env. Erro:", err)
 	}
 
-	// Verifica se está rodando no ambiente Lambda.
 	if os.Getenv("AWS_LAMBDA_RUNTIME_API") != "" {
 		log.Println("Detectado ambiente AWS Lambda. Iniciando Lambda Handler.")
 		lambda.Start(Handler)
