@@ -34,14 +34,14 @@ func setupDependencies(ctx context.Context) (*services.DataLoaderService, error)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao criar adaptador S3: %w", err)
 	}
-    
-    s3Wtr, err := s3.NewS3ResourceWriter(ctx)
-    if err != nil {
-        return nil, fmt.Errorf("erro ao criar adaptador S3 Writer: %w", err)
-    }
+
+	s3Wtr, err := s3.NewS3ResourceWriter(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao criar adaptador S3 Writer: %w", err)
+	}
 
 	ingestService := services.NewDataLoaderService(mongoRepo, s3Rdr, s3Wtr)
-	
+
 	return ingestService, nil
 }
 
